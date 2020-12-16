@@ -1,0 +1,49 @@
+<html>
+    <head>
+        <title>ヤフオクリサーチツール</title>
+        <link rel="stylesheet" href="./style.css">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    </head>
+    <body>
+        <div class="input_box">
+            <input id="url_list_path" class="feedback-input" type="text" placeholder="URL一覧のCSVファイルのパスを入力" name="url_list_path" required>
+          
+            <input id="ng_id_list_path" class="feedback-input" type="text" placeholder="除外ID一覧のCSVファイルのパスを入力 ※省略可" name="ng_id_list_path" required>
+          
+            <input id="output_directory" class="feedback-input" type="text" placeholder="結果ファイル出力先ディレクトリのパスを入力" name="output_directory" required>
+          
+            <select id="thread_num" class="feedback-input" name="thread_num">
+                <option value="1">スレッド数：1</option>
+                <option value="2">スレッド数：2</option>
+                <option value="3">スレッド数：3</option>
+                <option value="4">スレッド数：4</option>
+                <option value="5">スレッド数：5</option>
+                <option value="6">スレッド数：6</option>
+                <option value="7">スレッド数：7</option>
+                <option value="8">スレッド数：8</option>
+                <option value="9">スレッド数：9</option>
+                <option value="10">スレッド数：10</option>
+            </select>
+
+            <select id="wait_time" class="feedback-input" name="wait_time">
+                <option value="0">情報抽出間隔：0秒</option>
+                <option value="1">情報抽出間隔：1秒</option>
+                <option value="2">情報抽出間隔：2秒</option>
+                <option value="3">情報抽出間隔：3秒</option>
+                <option value="4">情報抽出間隔：4秒</option>
+                <option value="5">情報抽出間隔：5秒</option>
+                <option value="6">情報抽出間隔：6秒</option>
+                <option value="7">情報抽出間隔：7秒</option>
+                <option value="8">情報抽出間隔：8秒</option>
+                <option value="9">情報抽出間隔：9秒</option>
+                <option value="10">情報抽出間隔：10秒</option>
+            </select>
+          
+            <button id="start_button" type="button">Start!</button>
+          
+        </div>
+        <!-- JavaScript読み込み -->
+        <script type="text/javascript" src="./eel.js"></script>
+        <script type="text/javascript" src="script.js"></script>
+    </body>
+</html>
