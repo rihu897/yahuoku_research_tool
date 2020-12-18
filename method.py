@@ -59,6 +59,8 @@ class Main:
             # ファイルが存在しない場合、エラーメッセージを更新してFalseを返却
             self.error_message = "ERROR：URL一覧のCSVファイルが見つかりません path=" + input_list[0]
             return False
+        # コンソールに情報を出力
+        print("対象URL：" + str(self.target_url_list))
 
         # 除外IDリストのパスの入力確認
         if not input_list[1] == "":
@@ -73,6 +75,8 @@ class Main:
                 # ファイルが存在しない場合、エラーメッセージを更新してFalseを返却
                 self.error_message = "ERROR：除外ID一覧のCSVファイルが見つかりません path=" + input_list[1]
                 return False
+            # コンソールに情報を出力
+            print("除外対象Yahoo!ID：" + str(self.ng_id_list))
 
         # 結果出力先ディレクトリ存在確認・結果判定
         self.output_directory = input_list[2]
@@ -80,10 +84,15 @@ class Main:
             # ディレクトリが存在しない場合、エラーメッセージを更新してFalseを返却
             self.error_message = "ERROR：結果ファイル出力先が見つかりません 結果ファイル出力先=" + self.output_directory
             return False
+        # コンソールに情報を出力
+        print("結果ファイル出力先：" + self.output_directory)
 
         # スレッド数、取得間隔を格納
         self.threads_num = int(input_list[3])
         self.wait_time = int(input_list[4])
+        # コンソールに情報を出力
+        print("スレッド数：" + input_list[3])
+        print("取得間隔：{}秒".format(input_list[4]))
 
         # Trueを返却
         return True
@@ -111,6 +120,7 @@ class Main:
                         product_title = atag.find_element_by_class_name("p13n-sc-truncate-desktop-type2").get_attribute("textContent")
                         # 商品タイトル一覧に追加
                         product_title_list_parts.append(product_title)
+                        # コンソールに情報を出力
                         print(product_title)
                     # 1ページ目の場合
                     if i == 0:
@@ -123,6 +133,7 @@ class Main:
                 product_title = re.sub("\n","",driver.find_element_by_id("productTitle").get_attribute("textContent"))
                 # 商品タイトル一覧に追加
                 product_title_list_parts.append(product_title)
+                # コンソールに情報を出力
                 print(product_title)
             
             # 取得間隔分待機
@@ -161,7 +172,6 @@ class Main:
             # 検索結果判定
             if len(driver.find_elements_by_css_selector("div.Notice.u-marginT5 > p > span.Notice__wandText")) == 0:
                 while True:
-                    print("ループ開始")
                     # 検索結果が0件ではない場合（0件の場合はスキップ）
                     product_titlelink_list = driver.find_elements_by_class_name("Product__titleLink")
                     for product_titlelink in product_titlelink_list:
@@ -169,6 +179,7 @@ class Main:
                         exhibition_page_url = product_titlelink.get_attribute("href")
                         # 出品ページ一覧に追加
                         exhibition_page_url_list_parts.append(exhibition_page_url)
+                        # コンソールに情報を出力
                         print(exhibition_page_url)
                     # トランザクション開始（※次のページの存在確認）
                     try:
@@ -189,7 +200,6 @@ class Main:
         self.exhibition_page_url_list.extend(exhibition_page_url_list_parts)
         # 重複削除
         self.exhibition_page_url_list = sorted(set(self.exhibition_page_url_list), key=self.exhibition_page_url_list.index)
-        print(len(self.exhibition_page_url_list))
 
     # 出品者情報一覧取得処理
     def getSellerInfoList(self, list):
@@ -197,7 +207,7 @@ class Main:
         seller_name = ""            # Yahoo!ID
         listing_num = ""            # 総出品数
         thumbnail_id = ""           # サムネイル画像のID
-        
+
         # ドライバ起動
         driver = self.setDriver("geckodriver.exe",False)
         
@@ -210,19 +220,23 @@ class Main:
             # Yahoo!IDを取得後、出品者ページへ移動(ページ読み込み失敗対策で成功するまで無限ループ)
             seller_link = driver.find_element_by_css_selector(".Seller__name > a")
             seller_name = seller_link.get_attribute("textContent")
+            seller_page_url = seller_link.get_attribute("href")
             while True:
-                driver.get(seller_link.get_attribute("href"))
+                driver.get(seller_page_url)
                 time.sleep(2)
                 # 総出品数を取得
                 if len(driver.find_elements_by_css_selector("#sbn > fieldset > div.sbox_1.cf > div.sbox_2 > div > select > option:nth-child(1)")) > 0:
                     listing_num = re.sub("す.*（|）","",driver.find_element_by_css_selector("#sbn > fieldset > div.sbox_1.cf > div.sbox_2 > div > select > option:nth-child(1)").get_attribute("textContent"))
                     break
+                else:
+                    print("ページの読み込みに失敗しました。 Yahoo!ID=" + seller_name)
+                    print("ページをリロードします。")
+                    print("----------------------------------------")
                     
             # サムネイル画像を保存
             try:
                 thumbnail_id = seller_name + ".jpeg"
                 thumbnail_url = driver.find_element_by_css_selector("#sellername > div.seller__img > img").get_attribute("src")
-                print(thumbnail_url)
                 f = io.BytesIO(urllib.request.urlopen(thumbnail_url).read())
                 thumbnail_image = Image.open(f).convert("RGB")
                 # imgディレクトリ存在確認
@@ -236,6 +250,11 @@ class Main:
 
             # 出品者情報一覧に格納
             seller_info_list_parts.append([seller_name, listing_num, "", "", "", "", "", "", "", "", "", "", thumbnail_id])
+            # コンソールに情報を出力
+            print("Yahoo!ID："+seller_name)
+            print("総出品数："+listing_num)
+            print("サムネイル画像："+thumbnail_id)
+            print("----------------------------------------")
 
             # 取得間隔分待機
             time.sleep(self.wait_time)
@@ -258,6 +277,7 @@ class Main:
     # 売上情報一覧取得処理
     def getEarningsInfoList(self, list):
         earnings_info_list_parts = []   # 売上情報一覧
+
         # ドライバ起動
         driver = self.setDriver("geckodriver.exe",False)
         
@@ -300,16 +320,16 @@ class Main:
                     # 落札額取得
                     sale_amount = 0
                     if len(tr.find_elements_by_css_selector("th:nth-child(4) > small")) > 0:
-                        sale_amount = re.sub(" |　|,","",tr.find_element_by_css_selector("th:nth-child(4) > small").get_attribute("textContent"))
+                        sale_amount = re.sub(",","",tr.find_element_by_css_selector("th:nth-child(4) > small").get_attribute("textContent"))
                     else:
-                        sale_amount = re.sub(" |　|,","",tr.find_element_by_css_selector("td:nth-child(4) > small").get_attribute("textContent"))
+                        sale_amount = re.sub(",","",tr.find_element_by_css_selector("td:nth-child(4) > small").get_attribute("textContent"))
                     
-                    if sale_amount == "":
-                        # 落札額が空欄の場合、処理をスキップ
+                    try:
+                        # 落札額をint型にキャスト
+                        sale_amount = int(sale_amount)
+                    except:
+                        # 落札額が数値以外の場合、処理をスキップ 
                         continue
-                    else:
-                        # それ以外の場合、int型にキャスト
-                        sale_amount = int(sale_amount) 
 
                     # 終了日判定、売上加算
                     if end_date == target_date_list[0]:
@@ -345,8 +365,12 @@ class Main:
             
             # 売上情報一覧に追加
             earnings_info_list_parts.append(earnings_info)
-            print("完了：" + id)
-            print(earnings_info)
+            # コンソールに情報を出力
+            print("Yahoo!ID：" + earnings_info[0])
+            for i in range(5):
+                print(target_date_list[i])
+                print("入札件数：{0}件  売上:{1}円".format(earnings_info[i+1], earnings_info[i+6]))
+            print("----------------------------------------")
         
             # 取得間隔分待機
             time.sleep(self.wait_time)
@@ -362,7 +386,6 @@ class Main:
         thread_list = []
         # リスト分割
         split_url_list = np.array_split(list, self.threads_num)
-        time.sleep(5)
         # スレッド準備、関数呼び出し
         for i in range(self.threads_num):
             thread = threading.Thread(target=eval("self." + func_name), args=(split_url_list[i],))
@@ -379,9 +402,10 @@ class Main:
         # CSV出力
         df = pd.DataFrame(self.seller_info_list, columns = ["Yahoo!ID", "出品数", "入札件数①", "入札件数②", "入札件数③", "入札件数④", "入札件数⑤", "売上①", "売上②", "売上③", "売上④", "売上⑤", "画像ID"])
         df.to_csv(self.result_csv, index=False)
+        # コンソールに情報を出力
+        print("出力ファイル：" + self.result_csv)
         # Yahoo!IDリストを更新
         self.yahoo_id_list = df["Yahoo!ID"].values.tolist()
-        print(self.yahoo_id_list)
 
     # CSVファイル更新処理
     def updateCsv(self):
@@ -401,3 +425,5 @@ class Main:
         
         # CSV出力
         df.to_csv(self.result_csv, index=False)
+        # コンソールに情報を出力
+        print("更新ファイル：" + self.result_csv)
