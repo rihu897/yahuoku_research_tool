@@ -221,6 +221,22 @@ class Main:
             seller_link = driver.find_element_by_css_selector(".Seller__name > a")
             seller_name = seller_link.get_attribute("textContent")
             seller_page_url = seller_link.get_attribute("href")
+                                
+            # サムネイル画像を保存
+            try:
+                thumbnail_id = seller_name + ".jpeg"
+                thumbnail_url = driver.find_element_by_css_selector(".ProductImage__image.is-on > div > img").get_attribute("src")
+                f = io.BytesIO(urllib.request.urlopen(thumbnail_url).read())
+                thumbnail_image = Image.open(f).convert("RGB")
+                # imgディレクトリ存在確認
+                if not os.path.isdir(self.output_directory + "\img"):
+                    # ディレクトリが存在しない場合、新規作成
+                    os.mkdir(self.output_directory + "\img")
+                thumbnail_image.save(self.output_directory + "\img\\" + thumbnail_id, "JPEG", quality=95)
+            except:
+                # アクセスのできないサムネイル画像の場合、サムネイル画像のIDに空文字を設定
+                thumbnail_id = ""
+
             while True:
                 driver.get(seller_page_url)
                 time.sleep(2)
@@ -232,21 +248,6 @@ class Main:
                     print("ページの読み込みに失敗しました。 Yahoo!ID=" + seller_name)
                     print("ページをリロードします。")
                     print("----------------------------------------")
-                    
-            # サムネイル画像を保存
-            try:
-                thumbnail_id = seller_name + ".jpeg"
-                thumbnail_url = driver.find_element_by_css_selector("#sellername > div.seller__img > img").get_attribute("src")
-                f = io.BytesIO(urllib.request.urlopen(thumbnail_url).read())
-                thumbnail_image = Image.open(f).convert("RGB")
-                # imgディレクトリ存在確認
-                if not os.path.isdir(self.output_directory + "\img"):
-                    # ディレクトリが存在しない場合、新規作成
-                    os.mkdir(self.output_directory + "\img")
-                thumbnail_image.save(self.output_directory + "\img\\" + thumbnail_id, "JPEG", quality=95)
-            except:
-                # アクセスのできないサムネイル画像の場合、サムネイル画像のIDに空文字を設定
-                thumbnail_id = ""
 
             # 出品者情報一覧に格納
             seller_info_list_parts.append([seller_name, listing_num, "", "", "", "", "", "", "", "", "", "", thumbnail_id])
