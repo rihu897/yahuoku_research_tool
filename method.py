@@ -237,6 +237,7 @@ class Main:
                 # アクセスのできないサムネイル画像の場合、サムネイル画像のIDに空文字を設定
                 thumbnail_id = ""
 
+            count = 0
             while True:
                 driver.get(seller_page_url)
                 time.sleep(2)
@@ -245,9 +246,15 @@ class Main:
                     listing_num = re.sub("す.*（|）","",driver.find_element_by_css_selector("#sbn > fieldset > div.sbox_1.cf > div.sbox_2 > div > select > option:nth-child(1)").get_attribute("textContent"))
                     break
                 else:
-                    print("ページの読み込みに失敗しました。 Yahoo!ID=" + seller_name)
-                    print("ページをリロードします。")
-                    print("----------------------------------------")
+                    if count < 5:
+                        print("ページの読み込みに失敗しました。 Yahoo!ID=" + seller_name)
+                        print("ページをリロードします。")
+                        print("----------------------------------------")
+                        count += 1
+                    else:
+                        listing_num = 0
+                        break
+
 
             # 出品者情報一覧に格納
             seller_info_list_parts.append([seller_name, listing_num, "", "", "", "", "", "", "", "", "", "", thumbnail_id])
@@ -355,14 +362,17 @@ class Main:
                         continue
 
                 # 次のページへのリンク
+                next_page = False
                 next_page_links = driver.find_elements_by_css_selector("body > center:nth-child(5) > p:nth-child(9) > small > b > a")
                 for next_page_link in next_page_links:
                     if "次のページ" == next_page_link.get_attribute("textContent"):
                         driver.get(next_page_link.get_attribute("href"))
                         time.sleep(3)
-                        continue
-                # 次のページが存在しない為、ループを終了
-                break
+                        next_page = True
+
+                if not next_page and flg:
+                    # 次のページが存在しない為、ループを終了
+                    break
             
             # 売上情報一覧に追加
             earnings_info_list_parts.append(earnings_info)
